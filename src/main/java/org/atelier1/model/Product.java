@@ -53,7 +53,7 @@ public class Product {
         return quantityInStock;
     }
 
-    public void setQuantityInStock(int quantityInStock) {
+    public void setQuantity(int quantityInStock) {
         this.quantityInStock = quantityInStock;
     }
 }

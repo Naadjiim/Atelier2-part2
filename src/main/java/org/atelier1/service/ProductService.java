@@ -9,13 +9,12 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class ProductService {
-    private Map<Long, Product> productDatabase = new HashMap<>();
+    public Map<Long, Product> productDatabase = new HashMap<>();
     private Long idCounter = 1L;
-    private Set<Long> productsInOrder = new HashSet<>();
 
     public Product addProduct(String name, String category, double price, int quantityInStock) {
         if (productDatabase.values().stream().anyMatch(prod -> prod.getName().equals(name) && prod.getCategory().equals(category))) {
-            throw new ProductAlreadyExistsException("Product already exists in category: " + category);
+            throw new ProductAlreadyExistsException("Product with name " + name + " already exists in category " + category + ".");
         }
         Product product = new Product(idCounter++, name, category, price, quantityInStock);
         productDatabase.put(product.getId(), product);
@@ -27,8 +26,8 @@ public class ProductService {
         if (product == null) {
             throw new ProductNotFoundException("Product not found with id: " + id);
         }
-        if (productsInOrder.contains(id)) {
-            throw new CannotDeleteProductException("Cannot delete product that is in order.");
+        if (product.getQuantityInStock() > 0) {
+            throw new CannotDeleteProductException("Cannot delete product that is in stock.");
         }
         productDatabase.remove(id);
     }
@@ -41,7 +40,7 @@ public class ProductService {
         product.setName(name);
         product.setCategory(category);
         product.setPrice(price);
-        product.setQuantityInStock(quantityInStock);
+        product.setQuantity(quantityInStock);
         return product;
     }
 
@@ -61,26 +60,17 @@ public class ProductService {
                 .collect(Collectors.toList());
     }
 
-    public void updateStock(Long id, int quantity) {
+    public void updateStock(Long id, int quantityInStock) {
         Product product = productDatabase.get(id);
         if (product == null) {
             throw new ProductNotFoundException("Product not found with id: " + id);
         }
-        product.setQuantityInStock(quantity);
-        if (quantity < 10) {
-            System.out.println("Alert: Product " + product.getName() + " in category " + product.getCategory() + " is below critical stock level.");
-        }
+        product.setQuantity(quantityInStock);
     }
 
-    public void addProductToOrder(Long id) {
-        if (productDatabase.containsKey(id)) {
-            productsInOrder.add(id);
-        } else {
-            throw new ProductNotFoundException("Product not found with id: " + id);
-        }
-    }
-
-    public void removeProductFromOrder(Long id) {
-        productsInOrder.remove(id);
+    public List<Product> getProductsBelowThreshold(int threshold) {
+        return productDatabase.values().stream()
+                .filter(prod -> prod.getQuantityInStock() < threshold)
+                .collect(Collectors.toList());
     }
 }
