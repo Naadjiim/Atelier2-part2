@@ -23,10 +23,9 @@ jobs:
           java-version: 11
           distribution: 'adopt'
 
-      - name: Build RetailPro project
-        run: mvn -f pom.xml clean test
 
       - name: Set up SonarCloud analysis
+        run: mvn -f pom.xml clean test
         uses: sonarsource/sonarcloud-github-action@master
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
